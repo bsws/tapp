@@ -1,0 +1,14 @@
+{
+    "require": {
+        "silex/silex": "~1.2",
+        "kriswallsmith/buzz": "0.13.*",
+        "twig/twig": "~1.0",
+        "herrera-io/silex-pdo": "1.*"
+    },
+    "autoload": {
+        "psr-4": {
+            "Travel\\Util\\": "src/utils",
+            "Travel\\Controller\\": "src/controllers"
+        }
+    }
+}
