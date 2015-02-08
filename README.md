@@ -1,2 +1,2 @@
 # tapp
-Travel App
+Some functionality for a travel app
