@@ -10,7 +10,7 @@ class DbMapper {
                 switch($providerName) {
                     case 'christiantour':
                         return array(
-                           'id'             =>  'offer_id'
+                           'offer_id'       =>  'id'
                           ,'provider_id'    =>  null
                           ,'type'           =>  'type'
                           ,'search_id'      =>  'search_id'
@@ -27,7 +27,7 @@ class DbMapper {
                           ,'image_alt'      =>  'image_alt'
                           ,'room_type'      =>  'room_type'
                           ,'meal_plan'      =>  'meal_plan'
-                          ,'meal_plan_url'  =>  'meal_url'
+                          ,'meal_plan_url'  =>  'meal_plan_url'
                           ,'discount_info'  =>  'discount_info'
                           ,'price'          =>  'price'
                           ,'discount'       =>  'discount'

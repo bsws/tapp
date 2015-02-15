@@ -23,22 +23,27 @@ class OffersDbHandler {
         return $provider;
     }
 
+    function getPDO() {
+        return $this->pdo;
+    }
+
 
     function syncronizeObjects($providerName, $objArray/* array of stdObjects */) {
 
         $mapArr = DbMapper::getInsertFields($providerName, 'offers');
         $providerInfo = $this->getProviderInfo($providerName);
+        //prd($providerInfo);
 
         $providerTableFields = array_keys($mapArr);
 
-        $fieldsStr = '`'.implode('`,`', $providerTableFields).'`';
+        $fieldsStr          = '`'.implode('`,`', $providerTableFields).'`';
         $query = "INSERT INTO {$this->offersTable} ($fieldsStr) VALUES "; //Prequery
 
-        $paramsQM = array_fill(0, count($providerTableFields), '?');
+        $paramsQM           = array_fill(0, count($providerTableFields), '?');
 
-        $qPart = array_fill(0, count($objArray), '('.implode(',', $paramsQM).')');
+        $qPart              = array_fill(0, count($objArray), '('.implode(',', $paramsQM).')');
 
-        $query .=  implode(",",$qPart);
+        $query              .=  implode(",",$qPart);
 
         $stmt = $this->pdo->prepare($query); 
 
@@ -49,7 +54,8 @@ class OffersDbHandler {
         //prd($mapArr);
         foreach($objArray as $item) { //bind the values one by one
 
-            foreach($mapArr as $tField => $oField) {
+            $this->update($mapArr, $item);
+            /*foreach($mapArr as $tField => $oField) {
                 if(!is_null($oField)) {
                     if(isset($item->$oField)) {
                     echo $oField,': ',$item->$oField,"<br />";
@@ -70,13 +76,54 @@ class OffersDbHandler {
                         $stmt->bindParam($i++, $val);
                     }
                 }
-            }
+            }*/
 
         }
-        $stmt->execute();
+
+        //pr($stmt->debugDumpParams());
+        //pr(get_class_methods($stmt));
+        //die;
+        //$stmt->execute();
         die('ar trebui');
     }
 
+    function update($mapArr, $object) {
+        $q = "INSERT INTO {$this->offersTable}(";
+        $valsPart = "(";
+
+        foreach($mapArr as $tableField => $objField) {
+            $q          .= "`$tableField`,";
+            $valsPart   .= ":$tableField,";
+        }
+
+        $q          = rtrim($q, ',');
+        $valsPart   = rtrim($valsPart, ',');
+
+        $q          .= ")";
+        $valsPart   .= ")";
+
+        $q = $q.' VALUES '.$valsPart;
 
 
+//        $values = array();
+
+        $stmt = $this->getPDO()->prepare($q);
+
+        foreach($mapArr as $tableField => $objField) {
+            if(!empty($objField)) {
+                $val = $object->$objField;
+            }
+            else {
+                $val = '';
+            }
+
+            $stmt->bindParam(':'.$tableField, $val);
+        }
+
+        $stmt->execute();
+        pr(get_class_methods($this->getPDO()));
+        pr($this->getPDO()->lastInsertId());
+        prd(get_class_methods($stmt));
+        $stmt->debugDumpParams();
+    }
 }
