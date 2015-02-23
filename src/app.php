@@ -20,13 +20,17 @@ use Travel\Handlers\TransportHandler;
 use Travel\Handlers\ImagesDbHandler;
 use Travel\Handlers\ImagesHandler;
 
+use Travel\Util\Utils;
+
 use Travel\Controller\ImportController;
 use Travel\Controller\AdminController;
+use Travel\Controller\OffersController;
 
 $app = new Application();
 
 $app->register(new ServiceControllerServiceProvider());
 $app->register(new Silex\Provider\SessionServiceProvider());
+$app->register(new Silex\Provider\UrlGeneratorServiceProvider());
 
 $app->register(new Silex\Provider\DoctrineServiceProvider(), array(
     'db.options' => array(
@@ -124,12 +128,19 @@ $app['imagesHandler'] = $app->share(function() use($app){
     return new ImagesHandler($app['imagesDbHandler']);
 });
 
+$app['utils'] = $app->share(function() use($app){
+    return new Utils();
+});
+
 //controllers
 $app['controller.import'] = $app->share(function() use ($app) {
     return new ImportController();
 });
 $app['controller.admin'] = $app->share(function() use ($app) {
     return new AdminController();
+});
+$app['controller.offers'] = $app->share(function() use ($app) {
+    return new OffersController();
 });
 
 

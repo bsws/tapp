@@ -1,0 +1,16 @@
+{% extends 'admin/layout.html' %}
+
+{% block content %}
+{{ gridO.renderTable|raw }}
+{% endblock %}
+
+{% block additional_js %}
+<script src="/datatables/media/js/jquery.dataTables.js"></script>
+<script src="/js/dataTables.bootstrap.js"></script>
+{{ gridO.renderJsSettings|raw }}
+{% endblock %}
+
+{% block additional_css %}
+<link href="/css/datatables.bootstrap.css" rel="stylesheet"></script>
+{% endblock %}
+

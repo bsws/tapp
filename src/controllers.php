@@ -57,5 +57,12 @@ $app->get('/offer-details/{url}/{search_url}/{result_id}/{type}/', function($url
 });
 
 
-$app->get('/admin/', 'controller.admin:dashboard');
+$app->get('/admin/', 'controller.admin:dashboard')->bind('admin_homepage');
+$app->get('/admin/offers/', 'controller.offers:index')->bind('offers');
+$app->get('/admin/syncs/', 'controller.syncs')->bind('syncs');
+$app->get('/admin/providers/', 'controller.providers')->bind('providers');
+$app->get('/admin/countries/', 'controller.countries')->bind('countries');
+$app->get('/admin/destinations/', 'controller.destinations')->bind('destinations');
+$app->get('/admin/hotels/', 'controller.hotels')->bind('hotels');
+$app->get('/admin/transport/', 'controller.transport')->bind('transport');
 $app->get('/import/{provider_ident}', 'controller.import:import');

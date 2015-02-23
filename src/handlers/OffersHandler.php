@@ -39,4 +39,9 @@ class OffersHandler {
         if(empty($ids)) return;
         return $this->getDbHandler()->markInactive($providerId, $ids);
     }
+
+    function getForList($request) {
+        $dbData = $this->getDbHandler()->getForList($request);
+        return $dbData;
+    }
 }

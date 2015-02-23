@@ -190,4 +190,142 @@ class OffersDbHandler {
         return $this->getDbal()->query($q);
     }
 
+    public function getForList($request)
+    {
+        $limitStart = $request->get('iDisplayStart') ? $request->get('iDisplayStart') : 0;
+        $limitLength = $request->get('iDisplayLength') ? $request->get('iDisplayLength') : 12;
+
+        if($limitLength < 0) $limitLength = 100;
+
+        $sWhere = $this->getListWhere($request);
+        $sOrder = $this->getListOrder($request, array(array('p', 'name'), array('po', 'title'), array('po', 'type'), array('d', 'title'), array('po', 'modif_at'), array('po', 'active'), null));
+
+        $columns = "
+             p.name provider_name
+             ,po.title
+             ,po.type
+             ,CONCAT_WS('-',d.title, c.title) dest
+             ,po.modif_at
+             ,po.status
+             ,po.active
+        ";
+
+        $from = "
+                providers p
+                JOIN providers_offers po ON po.provider_id = p.id
+                JOIN destinations d ON po.destination_id = d.id
+                JOIN countries c ON d.country_id = c.id
+                LEFT JOIN hotels h ON h.provider_id = po.provider_id AND h.id = po.hotel_id
+        ";
+
+        $q = "SELECT
+                $columns
+              FROM 
+                $from
+                $sWhere ";
+        $q .= " 
+                GROUP BY po.provider_id, po.offer_id
+                $sOrder
+                LIMIT $limitStart, $limitLength
+              ";
+
+        $cQ = "SELECT
+                COUNT(DISTINCT CONCAT(po.provider_id, po.offer_id))
+              FROM 
+                $from
+                $sWhere 
+              ";
+
+        $stmt = $this->getDbal()->prepare($cQ);
+        $stmt->execute();
+        $allRecs  = $stmt->fetchColumn(0);
+
+        $stmt = $this->getDbal()->prepare($q);
+        $stmt->execute();
+        $stmt->setFetchMode(\PDO::FETCH_ASSOC);
+        $results = $stmt->fetchAll();
+
+        $ret_arr = array();
+
+        foreach ($results as $res)
+        {
+
+            $row_arr = array();
+            $row_arr[] = $res['provider_name'];
+            $row_arr[] = $res['title'];
+            $row_arr[] = $res['type'];
+            $row_arr[] = $res['dest'];
+            $row_arr[] = $res['modif_at'];
+            $row_arr[] = empty($res['active']) ? '<span class="label label-default">Nu</span>' : '<span class="label label-primary">Da</span>';
+            $row_arr[] = '<a class="btn btn-primary btn-xs">Detalii</a>';
+            $ret_arr[] = $row_arr;
+
+        }
+
+        return array(
+            'totalRowsFound' => $allRecs
+            ,'results' => $ret_arr
+        );
+    }
+
+
+    function getListWhere($request, $user = null)
+    {
+        /**
+         *  columns where we search
+         */
+        $aColumns = array(
+                         array('po', 'type')
+                        ,array('po', 'title')
+                        ,array('d', 'title')
+                        ,array('c', 'title')
+                    );
+        $sWhere = 'WHERE 1 ';
+
+        if($request->get('sSearch'))
+        {
+            $sWhere .= "AND (";
+            for ( $i=0 ; $i<count($aColumns) ; $i++ )
+            {
+                $sWhere .= $aColumns[$i][0].".".$aColumns[$i][1]." LIKE '%".$request->get('sSearch') ."%' OR ";
+            }
+            $sWhere = substr_replace( $sWhere, "", -3 );
+            $sWhere .= ') ';
+        }
+        return $sWhere;
+    }
+
+    public function getListOrder($request, $sColumns = array())
+    {
+        /**
+         *  sortable columns in order
+         */
+        $sOrder = '';
+        if(/*$request->get('iSortCol_0') AND */$request->get('sSortDir_0'))
+        {
+            $sOrder = "ORDER BY  ";
+            for ( $i=0 ; $i<intval( $request->get('iSortingCols') ) ; $i++ )
+            {
+                if ( $request->get('bSortable_'.intval($request->get('iSortCol_'.$i)) ) == "true" )
+                {
+                    if(count($sColumns[ intval( $request->get('iSortCol_'.$i) ) ]) > 1)
+                    {
+                        $sOrder .= (empty($sColumns[ intval( $request->get('iSortCol_'.$i) ) ][0]) ? "" : $sColumns[ intval( $request->get('iSortCol_'.$i) ) ][0].".").$sColumns[ intval( $request->get('iSortCol_'.$i) ) ][1]." ". $request->get('sSortDir_'.$i ) .", ";
+                    }
+                    else{
+                        $sOrder .= $sColumns[ intval( $request->get('iSortCol_'.$i) ) ][0]." ".
+                            $request->get('sSortDir_'.$i ) .", ";
+                    }
+                }
+            }
+
+            $sOrder = substr_replace( $sOrder, "", -2 );
+            if ( $sOrder == "ORDER BY" )
+            {
+                $sOrder = "";
+            }
+        }
+        return $sOrder;
+    }
+
 }
