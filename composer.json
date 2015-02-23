@@ -3,11 +3,18 @@
         "silex/silex": "~1.2",
         "kriswallsmith/buzz": "0.13.*",
         "twig/twig": "~1.0",
-        "herrera-io/silex-pdo": "1.*"
+        "symfony/security": "~2.6",
+        "symfony/form": "~2.6",
+        "symfony/validator": "~2.6",
+        "symfony/config": "~2.6",
+        "symfony/translation": "~2.6",
+        "symfony/twig-bridge": "~2.6",
+        "doctrine/dbal": "~2.2"
     },
     "autoload": {
         "psr-4": {
             "Travel\\Util\\": "src/utils",
+            "Travel\\Handlers\\": "src/handlers",
             "Travel\\Controller\\": "src/controllers"
         }
     }
