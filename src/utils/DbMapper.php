@@ -23,6 +23,8 @@ class DbMapper {
                           ,'url'            =>  'offer_url'
                           ,'description'    =>  'offer_description'
                           ,'hotel_id'       =>  'hotel_id'
+                          ,'destination_id' =>  'destination_id'
+                          ,'transport_id'   =>  'transport_id'
                           ,'attribute_id'   =>  'attribute_id'
                           ,'image_src'      =>  'image_src'
                           ,'image_alt'      =>  'image_alt'

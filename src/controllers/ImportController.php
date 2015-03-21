@@ -7,15 +7,40 @@ use Travel\Util\Syncronizer;
 
 class ImportController {
 
-    public function import(Request $request, Application $app) {
+    /**
+     *  import / sync offers - starting with Christian tour
+     **/
+    public function importOffers(Request $request, Application $app) {
+
+        $providerInfo = $this->getProviderInfo($request, $app);
+        Syncronizer::syncOffers($providerInfo, $app);
+
+        return 'Offers for '.$providerInfo['name'].' - Ok';
+    }
+
+    public function updateCounters(Request $request, Application $app) {
+
+        Syncronizer::updateCounters($app);
+        return "Counters are syncronized.";
+
+    }
+
+    public function importDestinations(Request $request, Application $app) {
+
+        $providerInfo = $this->getProviderInfo($request, $app);
+
+        Syncronizer::syncCountries($providerInfo, $app);
+        Syncronizer::syncDestinations($providerInfo, $app);
+
+        return 'Destinations for '.$providerInfo['name'].' - Ok';
+    }
+
+    function getProviderInfo(Request $request, Application $app) {
+
         $providerIdent = $request->get('provider_ident');
         $providerInfo  = $app['providerHandler']->findOneByIdent($providerIdent);
 
-        Syncronizer::syncOffers($providerInfo, $app);
-        //get the offers handler service
-        //$app['offersHandler']->syncronizeOffersForProvider($providerInfo, $app);
-
-        return 'Ok';
+        return $providerInfo;
     }
 
 }

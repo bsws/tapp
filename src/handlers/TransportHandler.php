@@ -1,7 +1,7 @@
 <?php
 namespace Travel\Handlers;
 
-class TransportHandler {
+class TransportHandler extends GenericHandler {
 
     private $dbHandler;
 

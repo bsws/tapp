@@ -56,13 +56,21 @@ $app->get('/offer-details/{url}/{search_url}/{result_id}/{type}/', function($url
     }
 });
 
+//web service routes
+$app->get('/ss',  'controller.ws:suggestions');
+$app->get('/res', 'controller.ws:results');
 
+//sync routes
+$app->get('/sync/update-counters', 'controller.import:updateCounters')->bind('sync_update_counters');
+$app->get('/sync/destinations/{provider_ident}', 'controller.import:importDestinations')->bind('sync_offers');
+$app->get('/sync/{provider_ident}', 'controller.import:importOffers')->bind('sync');
+
+//admin routes
 $app->get('/admin/', 'controller.admin:dashboard')->bind('admin_homepage');
+$app->get('/admin/providers/', 'controller.providers:index')->bind('providers');
 $app->get('/admin/offers/', 'controller.offers:index')->bind('offers');
 $app->get('/admin/syncs/', 'controller.syncs')->bind('syncs');
-$app->get('/admin/providers/', 'controller.providers')->bind('providers');
-$app->get('/admin/countries/', 'controller.countries')->bind('countries');
-$app->get('/admin/destinations/', 'controller.destinations')->bind('destinations');
-$app->get('/admin/hotels/', 'controller.hotels')->bind('hotels');
-$app->get('/admin/transport/', 'controller.transport')->bind('transport');
-$app->get('/import/{provider_ident}', 'controller.import:import');
+$app->get('/admin/countries/', 'controller.countries:index')->bind('countries');
+$app->get('/admin/destinations/', 'controller.destinations:index')->bind('destinations');
+$app->get('/admin/hotels/', 'controller.hotels:index')->bind('hotels');
+$app->get('/admin/transport/', 'controller.transport:index')->bind('transport');

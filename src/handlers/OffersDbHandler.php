@@ -54,8 +54,15 @@ class OffersDbHandler {
         }
     }
 
-    function findOneBy($arr) {
-        $sql = "SELECT * FROM {$this->table} WHERE 1 " ;
+    /*
+     * $arr         - criteria for search
+     * $selectCols  - columns to select
+     **/
+    function findOneBy($arr, $selectCols = array()) {
+
+        $cols = empty($selectCols) ? '*' : implode(',', $selectCols);
+
+        $sql = "SELECT $cols FROM {$this->table} WHERE 1 " ;
 
         foreach($arr as $k => $val) {
             $sql .= 'AND '.$k.' = ? ';
@@ -326,6 +333,140 @@ class OffersDbHandler {
             }
         }
         return $sOrder;
+    }
+
+    function getSuggestionsForSearch($term, $start, $offset) {
+
+        $q = "
+                SELECT
+                     c.url
+                    ,c.title
+                    ,hotels_no
+                    ,circuits_no 
+                    ,packages_no 
+                    ,'country' type
+                    ,'' descr
+                FROM
+                    countries c
+                WHERE
+                    c.title LIKE :term
+
+                UNION
+
+                SELECT
+                     d.url 
+                    ,CONCAT_WS(' - ', d.title, c.title) title
+                    ,d.hotels_no
+                    ,d.circuits_no
+                    ,d.packages_no
+                    ,'dest' type
+                    ,'' descr
+                FROM
+                    destinations d
+                    JOIN countries c ON c.id = d.country_id
+                WHERE
+                    d.title LIKE :term
+
+                UNION
+
+                SELECT
+                    po.url
+                    ,po.title
+                    ,0 hotels_no
+                    ,0 circuits_no
+                    ,0 packages_no
+                    ,IF(po.type = 'circuit', 'circuit', 'sejur') type
+                    ,CONCAT(IF(po.type = 'circuit', 'Circuit', 'Sejur'),' ', d.title,', ',c.title,' - ',t.name ) descr
+                FROM
+                    providers_offers po
+                    JOIN destinations d ON d.id = po.destination_id
+                    JOIN countries c ON c.id = d.country_id
+                    LEFT JOIN transport t ON t.id = po.transport_id
+                WHERE
+                    po.type IN ('circuit', 'package')
+                    AND po.title LIKE :term
+
+
+                LIMIT $start, $offset
+                    ";
+
+        $stmt = $this->getDbal()->prepare($q);
+        $stmt->bindValue('term', '%'.$term.'%');
+        $stmt->execute();
+
+        $results = $stmt->fetchAll();
+
+        return $results;
+
+    }
+
+    //get full info about entity
+    function findBy($arr, $selectCols = array()) {
+
+
+        $sql = "
+            SELECT
+                h.name
+                ,h.htype
+                ,h.url
+                ,h.description
+                ,h.stars
+                ,d.url d_url
+                ,d.title d_title
+                ,c.url c_url
+                ,c.title c_title
+            FROM
+                hotels h
+                JOIN destinations d ON d.id = h.destination_id
+                JOIN countries c ON c.id = d.country_id
+                JOIN providers p ON p.id = h.provider_id
+            WHERE ";
+
+            if($arr['type'] == 'dest')
+                $sql .= " d.url = :url ";
+            elseif($arr['type'] == 'country') 
+                $sql .= " c.url = :url ";
+            $sql .= " LIMIT 0, 10
+            ";
+        $stmt = $this->getDbal()->prepare($sql);
+        $stmt->bindValue('url', $arr['url']);
+        $stmt->execute();
+
+        $results = $stmt->fetchAll();
+
+        return $results;
+    }
+
+    function findOffersBy($params, $start = 0, $offset = 10) {
+        $q = "
+            SELECT
+                po.search_id,
+                po.search_url,
+                po.result_id,
+                po.title,
+                po.url,
+                po.type,
+                po.description,
+                po.image_src,
+                po.image_alt,
+                po.meal_plan,
+                po.price,
+                po.discount,
+                po.min_price,
+                h.name h_name
+            FROM
+                providers_offers po
+                LEFT JOIN hotels h ON h.id = po.hotel_id
+            WHERE
+                h.url = :hotel_url
+            ";
+        $stmt = $this->getDbal()->prepare($q);
+        $stmt->bindValue('hotel_url', $params['hotel_url']);
+        $stmt->execute();
+
+        $results = $stmt->fetchAll();
+
+        return $results;
     }
 
 }

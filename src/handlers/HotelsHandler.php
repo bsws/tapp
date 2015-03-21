@@ -1,7 +1,7 @@
 <?php
 namespace Travel\Handlers;
 
-class HotelsHandler {
+class HotelsHandler extends GenericHandler {
 
     private $dbHandler;
 

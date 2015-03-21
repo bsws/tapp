@@ -1,10 +1,12 @@
 <?php
 
-use Herrera\Pdo\PdoServiceProvider;
 use Silex\Application;
+use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
 use Silex\Provider\TwigServiceProvider;
 use Silex\Provider\ServiceControllerServiceProvider;
 
+//diverse handlers
 use Travel\Handlers\OffersHandler;
 use Travel\Handlers\OffersDbHandler;
 use Travel\Handlers\ProviderDbHandler;
@@ -20,13 +22,34 @@ use Travel\Handlers\TransportHandler;
 use Travel\Handlers\ImagesDbHandler;
 use Travel\Handlers\ImagesHandler;
 
+//utils
 use Travel\Util\Utils;
 
+//controllers
 use Travel\Controller\ImportController;
 use Travel\Controller\AdminController;
 use Travel\Controller\OffersController;
+use Travel\Controller\ProvidersController;
+use Travel\Controller\CountriesController;
+use Travel\Controller\DestinationsController;
+use Travel\Controller\HotelsController;
+use Travel\Controller\TransportController;
+use Travel\Controller\WSController;
 
 $app = new Application();
+
+$app->error(function (\Exception $e, $code) {
+    switch ($code) {
+        case 404:
+            $message = 'The requested page could not be found.';
+            break;
+        default:
+            $message = 'We are sorry, but something went terribly wrong.';
+            $message .= "<hr />".$e->getMessage();
+    }
+
+    return new Response($message);
+});
 
 $app->register(new ServiceControllerServiceProvider());
 $app->register(new Silex\Provider\SessionServiceProvider());
@@ -36,9 +59,9 @@ $app->register(new Silex\Provider\DoctrineServiceProvider(), array(
     'db.options' => array(
         'driver'    => 'pdo_mysql',
         'host'      => 'localhost',
-        'dbname'    => 'travel',
-        'user'      => 'root',
-        'password'  => ',marius++',
+        'dbname'    => getenv('TRAVEL_DB_NAME') ?: 'travel',
+        'user'      => getenv('TRAVEL_DB_USER') ?: 'root',
+        'password'  => getenv('TRAVEL_DB_PASS'), 
         'charset'   => 'utf8',
     ),
 ));
@@ -133,6 +156,9 @@ $app['utils'] = $app->share(function() use($app){
 });
 
 //controllers
+$app['controller.ws'] = $app->share(function() use ($app) {
+    return new WSController();
+});
 $app['controller.import'] = $app->share(function() use ($app) {
     return new ImportController();
 });
@@ -141,6 +167,21 @@ $app['controller.admin'] = $app->share(function() use ($app) {
 });
 $app['controller.offers'] = $app->share(function() use ($app) {
     return new OffersController();
+});
+$app['controller.providers'] = $app->share(function() use ($app) {
+    return new ProvidersController();
+});
+$app['controller.countries'] = $app->share(function() use ($app) {
+    return new CountriesController();
+});
+$app['controller.destinations'] = $app->share(function() use ($app) {
+    return new DestinationsController();
+});
+$app['controller.hotels'] = $app->share(function() use ($app) {
+    return new HotelsController();
+});
+$app['controller.transport'] = $app->share(function() use ($app) {
+    return new TransportController();
 });
 
 

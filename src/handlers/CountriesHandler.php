@@ -1,7 +1,7 @@
 <?php
 namespace Travel\Handlers;
 
-class CountriesHandler {
+class CountriesHandler extends GenericHandler{
 
     private $dbHandler;
 
@@ -23,5 +23,21 @@ class CountriesHandler {
 
         return $this->getDbHandler()->sync($country);
 
+    }
+
+    function getAssoc() {
+        $countriesArr = $this->getDbHandler()->findAll();
+
+        $countries = array();
+
+        foreach($countriesArr as $arr) {
+            $countries[$arr['title']] = $arr['id'];
+        }
+
+        return $countries;
+    }
+
+    function updateCounters() {
+        return $this->getDbHandler()->updateCounters();
     }
 }
